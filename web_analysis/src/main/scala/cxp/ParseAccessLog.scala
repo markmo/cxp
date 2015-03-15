@@ -48,10 +48,14 @@ object ParseAccessLog {
         e.printStackTrace()
         println(e.getMessage)
     }
+    val sessionLengths = sessionLengthSeconds(events)
+    val now = new Date
     events.union(pageViewsPerSession(events).map(event =>
         CustomerEvent(event._1._2, "page_views_per_session", event._2._1, event._2._2.toString, event._1._1)))
-      .union(sessionLengthSeconds(events).map(event =>
+      .union(sessionLengths.map(event =>
         CustomerEvent(event._1._2, "session_length_seconds", event._2._1, event._2._2.toString, event._1._1)))
+      .union(averageSessionLengthSeconds(sessionLengths).map(t =>
+        CustomerEvent(t._1, "average_session_length_seconds", now, t._2.toString, "NA")))
       .sortBy(event => (event.customerId, event.datetime))
       .saveAsTextFile(output)
   }
@@ -66,6 +70,17 @@ object ParseAccessLog {
     events.map(event => ((event.sessionId, event.customerId), (event.datetime, event.datetime)))
       .reduceByKey((a, b) => (min(a._1, b._1), max(a._2, b._2)))
       .map(event => (event._1, (event._2._2, (event._2._2.getTime - event._2._1.getTime)/1000)))
+
+  /**
+   *
+   * @param rdd ((sessionId, customerId), (sessionEndDate, sessionLengthSeconds))
+   * @return
+   */
+  def averageSessionLengthSeconds(rdd: RDD[((String, String), (Date, Long))]): RDD[(String, Float)] =
+    rdd
+      .map(t => (t._1._2, (t._1._1, t._2._1, t._2._2)))
+      .groupByKey()
+      .map(t => (t._1, t._2.map(_._3).reduceLeft(_ + _)/t._2.size))
 
   // Utility functions
 

@@ -1,3 +1,4 @@
 web_request,web_analytics
 page_views_per_session,web_analytics
 session_length_seconds,web_analytics
+average_session_length_seconds,web_analytics

@@ -20,11 +20,17 @@ count(data)
 parseFields <- function(record) {
     Sys.setlocale("LC_ALL", "C") # necessary for strsplit() to work correctly
     parts <- strsplit(record, ",")[[1]]
-    list(customerId=parts[1], webRequest=parts[2], pageViewsPerSession=parts[3], sessionLengthSeconds=parts[4])
+    list(customerId=parts[1], webRequest=parts[2], pageViewsPerSession=parts[3], sessionLengthSeconds=parts[4], averageSessionLengthSeconds=parts[5])
 }
 
 parsedRDD <- lapply(data, parseFields)
 cache(parsedRDD)
 
+take(parsedRDD, 5)
+
 ipAddresses <- lapply(parsedRDD, function(x) { x$customerId})
 take(ipAddresses, 10)
+
+_Top 10 customers by average session length_
+
+top10 <- take(sortBy(parsedRDD, function(x) {x[["averageSessionLengthSeconds"]]}, F), 10) # F is a boolean that indicates descending sort order; default is ascending
