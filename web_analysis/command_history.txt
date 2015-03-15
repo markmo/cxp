@@ -1,0 +1,6 @@
+http://amodernstory.com/2014/09/23/installing-hadoop-on-mac-osx-yosemite/
+
+hdfs dfs -mkdir -p /lab/cxp
+hdfs dfs -ls /
+hdfs dfs -put www1 /lab/cxp
+hdfs dfs -ls /lab/cxp
